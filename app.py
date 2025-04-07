@@ -1,28 +1,35 @@
 #!/usr/bin/env python3
 import os
-
+import json
 import aws_cdk as cdk
 
-from swc_platform_assignment.swc_platform_assignment_stack import SwcPlatformAssignmentStack
+from swc_platform_assignment.ssm_stack import SsmStack
+from swc_platform_assignment.vpc_stack import VpcStack
+from swc_platform_assignment.lambda_values_stack import LambdaValuesStack
+from swc_platform_assignment.eks_stack import EksStack
 
+def load_config(env_name: str) -> dict:
+    config_path = os.path.join("config", f"{env_name}.json")
+    with open(config_path, "r") as config_file:
+        return json.load(config_file)
 
 app = cdk.App()
-SwcPlatformAssignmentStack(app, "SwcPlatformAssignmentStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
+env_name = app.node.try_get_context("env") or os.getenv("CDK_ENV", "dev")
+config = load_config(env_name)
 
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+aws_env = cdk.Environment(region=config["region"])
 
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
+# Create account environment SSM parameter
+account_env_parameter = SsmStack(app, "account-env-parameter", env=aws_env, config=config)
 
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
+# Create main VPC
+vpc_main = VpcStack(app, "vpc-main", env=aws_env, config=config)
 
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
+# Create Lambda values generator stack
+lambda_values = LambdaValuesStack(app, "lambda-values", env=aws_env, vpc=vpc_main.vpc, config=config)
+
+# Create main EKS cluster
+eks_main = EksStack(app, "eks-main", env=aws_env, vpc=vpc_main.vpc, values=lambda_values.values, config=config)
 
 app.synth()

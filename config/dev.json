@@ -1,0 +1,18 @@
+{
+    "project": "swc-platform-assignment",
+    "environment": "dev",
+    "vpc_main_cidr": "10.30.0.0/16",
+    "region": "us-east-1",
+    "parameter_name": "/platform/account/env",
+    "eks_main_configurations": {
+        "cluster_version": "V1_32",
+        "alb_controller_version": "V2_8_2"
+    },
+    "eks_main_managed_node_group_general_settings": {
+        "desired_size": 2,
+        "min_size": 1,
+        "max_size": 3,
+        "instance_types": ["t3.small"],
+        "capacity_type": "ON_DEMAND"
+    }
+}
