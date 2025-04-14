@@ -26,6 +26,9 @@ $ source .venv/bin/activate
 $ pip install -r requirements.txt
 ```
 ```
+$ cdk bootstrap
+```
+```
 $ cdk deploy --all
 ```
 
