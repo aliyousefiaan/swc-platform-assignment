@@ -1,9 +1,7 @@
 from aws_cdk import (
     Stack,
-    aws_eks as eks,
     aws_iam as iam,
     aws_lambda as lambda_,
-    custom_resources as cr,
     aws_ec2 as ec2,
     Duration,
     CustomResource,
